@@ -28,9 +28,7 @@ public class CommandRouteBuilderTest extends CamelTestSupport {
 
         properties.put("host", "localhost");
         properties.put("port", "5556");
-
         properties.put("sourcePath", "src/test/resources");
-
         properties.put("fuse.workingDir", "");
 
         return properties;
@@ -42,30 +40,35 @@ public class CommandRouteBuilderTest extends CamelTestSupport {
     }
 
     @Test
-    public void testResolvePortWithContainerNameCommandFile() throws Exception {
+    public void testResolvePortWithContainerNameInCommandFile() throws Exception {
 
         context.getRouteDefinition("dispatchCommandRoute").adviceWith(context, new AdviceWithRouteBuilder() {
             @Override
             public void configure() throws Exception {
                 replaceFromWith("direct:in");
-                interceptSendToEndpoint("direct:execute").skipSendToOriginalEndpoint().to("mock:end");
+
+                interceptSendToEndpoint("direct:execute")
+                    .skipSendToOriginalEndpoint()
+                    .to("mock:end");
             }
         });
 
         context.getRouteDefinition("getPortFromContainerInfoRoute").adviceWith(context, new AdviceWithRouteBuilder() {
             @Override
             public void configure() throws Exception {
-                weaveById("execPortCommand").replace().process(new Processor() {
-                    @Override
-                    public void process(Exchange exchange) throws Exception {
-                        File file = new File("src/test/resources/container_info_response");
-                        ExecResult execResult = mock(ExecResult.class);
+                weaveById("execPortCommand")
+                    .replace()
+                    .process(new Processor() {
+                        @Override
+                        public void process(Exchange exchange) throws Exception {
+                            File file = new File("src/test/resources/container_info_response");
+                            ExecResult execResult = mock(ExecResult.class);
 
-                        when(execResult.getStdout()).thenReturn(new FileInputStream(file));
+                            when(execResult.getStdout()).thenReturn(new FileInputStream(file));
 
-                        exchange.getIn().setBody(execResult);
-                    }
-                }).to("mock:exec");
+                            exchange.getIn().setBody(execResult);
+                        }
+                    }).to("mock:exec");
             }
         });
 
@@ -85,12 +88,15 @@ public class CommandRouteBuilderTest extends CamelTestSupport {
     }
 
     @Test
-    public void testCommandFileWithPort() throws Exception {
+    public void testExecuteCommandWithPortInCommandFile() throws Exception {
         context.getRouteDefinition("dispatchCommandRoute").adviceWith(context, new AdviceWithRouteBuilder() {
             @Override
             public void configure() throws Exception {
                 replaceFromWith("direct:in");
-                interceptSendToEndpoint("direct:execute").skipSendToOriginalEndpoint().to("mock:end");
+
+                interceptSendToEndpoint("direct:execute")
+                    .skipSendToOriginalEndpoint()
+                    .to("mock:end");
             }
         });
 
@@ -110,17 +116,19 @@ public class CommandRouteBuilderTest extends CamelTestSupport {
         context.getRouteDefinition("executeCommandRoute").adviceWith(context, new AdviceWithRouteBuilder() {
             @Override
             public void configure() throws Exception {
-                weaveById("execCommand").replace().process(new Processor() {
-                    @Override
-                    public void process(Exchange exchange) throws Exception {
-                        File file = new File("src/test/resources/command_success_response");
-                        ExecResult execResult = mock(ExecResult.class);
+                weaveById("execCommand")
+                    .replace()
+                    .process(new Processor() {
+                        @Override
+                        public void process(Exchange exchange) throws Exception {
+                            File file = new File("src/test/resources/command_success_response");
+                            ExecResult execResult = mock(ExecResult.class);
 
-                        when(execResult.getStdout()).thenReturn(new FileInputStream(file));
+                            when(execResult.getStdout()).thenReturn(new FileInputStream(file));
 
-                        exchange.getIn().setBody(execResult);
-                    }
-                }).to("mock:exec");
+                            exchange.getIn().setBody(execResult);
+                        }
+                    }).to("mock:exec");
 
                 weaveById("processResponseCommand").after().to("mock:end");
             }
@@ -145,24 +153,29 @@ public class CommandRouteBuilderTest extends CamelTestSupport {
             @Override
             public void configure() throws Exception {
                 replaceFromWith("direct:dispatchBundleStateRoute");
-                weaveById("marshalJsonResponse").after().to("mock:end");
+
+                weaveById("marshalJsonResponse")
+                    .after()
+                    .to("mock:end");
             }
         });
 
         context.getRouteDefinition("getPortFromContainerInfoRoute").adviceWith(context, new AdviceWithRouteBuilder() {
             @Override
             public void configure() throws Exception {
-                weaveById("execPortCommand").replace().process(new Processor() {
-                    @Override
-                    public void process(Exchange exchange) throws Exception {
-                        File file = new File("src/test/resources/container_info_response");
-                        ExecResult execResult = mock(ExecResult.class);
+                weaveById("execPortCommand")
+                    .replace()
+                    .process(new Processor() {
+                        @Override
+                        public void process(Exchange exchange) throws Exception {
+                            File file = new File("src/test/resources/container_info_response");
+                            ExecResult execResult = mock(ExecResult.class);
 
-                        when(execResult.getStdout()).thenReturn(new FileInputStream(file));
+                            when(execResult.getStdout()).thenReturn(new FileInputStream(file));
 
-                        exchange.getIn().setBody(execResult);
-                    }
-                });
+                            exchange.getIn().setBody(execResult);
+                        }
+                    });
             }
         });
 
@@ -204,7 +217,10 @@ public class CommandRouteBuilderTest extends CamelTestSupport {
             @Override
             public void configure() throws Exception {
                 replaceFromWith("direct:dispatchBundleStateRoute");
-                weaveById("marshalJsonErrorResponse").after().to("mock:end");
+
+                weaveById("marshalJsonErrorResponse")
+                    .after()
+                    .to("mock:end");
             }
         });
 
