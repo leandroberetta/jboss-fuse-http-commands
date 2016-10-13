@@ -1,0 +1,2 @@
+port: 8102
+command: list -s |grep jboss-fuse-http-commands

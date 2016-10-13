@@ -1,0 +1,21 @@
+Name:                          container-test
+Version:                       2.0
+Connected:                     true
+Type:                          karaf
+Root:                          false
+Ensemble Server:               false
+Managed:                       true
+Process ID:                    19983
+Resolver:                      localhostname
+Network Address:               localhostname
+Local Network Address:         192.168.211.199
+Public Network Address:
+Local Hostname:                localhostname
+Public Hostname:
+SSH Url:                       srvbparg0426:8110
+JMX Url:                       service:jmx:rmi://localhostname:44453/jndi/rmi://localhostname:1108/karaf-container-test
+Http Url:                      http://localhostname:8190
+Jolokia Url:                   http://localhostname:8190/jolokia
+Blueprint Status:              started
+Spring Status:                 started
+Provision Status:              success
