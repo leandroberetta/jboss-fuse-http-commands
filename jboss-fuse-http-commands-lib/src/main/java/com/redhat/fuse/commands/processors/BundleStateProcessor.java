@@ -6,6 +6,7 @@ import org.apache.camel.Exchange;
 import org.apache.camel.Processor;
 
 import java.io.BufferedReader;
+import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.regex.Matcher;
@@ -15,13 +16,13 @@ public class BundleStateProcessor implements Processor {
 
     @Override
     public void process(Exchange exchange) throws Exception {
-        InputStream body = (InputStream) exchange.getIn().getBody();
-        BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(body));
-        String name = (String) exchange.getIn().getHeader("name");
-
+        String result = (String) exchange.getIn().getBody();
         String line;
+        BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(new ByteArrayInputStream(result.getBytes())));
+
+        // Workaround for command first line output
         while ((line = bufferedReader.readLine()) != null) {
-            if (line.contains(name))
+            if (!line.contains("Ignoring"))
                 break;
         }
 

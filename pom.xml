@@ -19,23 +19,9 @@
     <properties>
         <bundle-brand-name>jboss-fuse-http-commands</bundle-brand-name>
         <bundle-brand-description>jboss-fuse-http-commands</bundle-brand-description>
-
+        <jboss.fuse.bom.version>6.2.0.redhat-133</jboss.fuse.bom.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-
-        <fabric.version>1.2.0.redhat-133</fabric.version>
-        <jboss.fuse.bom.version>6.2.0.redhat-133</jboss.fuse.bom.version>
-
-        <fabric8.profile>${bundle-brand-name}-profile</fabric8.profile>
-        <fabric8.parentProfiles>jboss-fuse-minimal</fabric8.parentProfiles>
-        <fabric8.upload>false</fabric8.upload>
-        <fabric8.features>
-            camel-restlet
-            camel-exec
-            camel-jackson
-        </fabric8.features>
-        <fabric8.bundles>
-        </fabric8.bundles>
     </properties>
 
     <dependencyManagement>
@@ -105,6 +91,26 @@
             <scope>test</scope>
         </dependency>
     </dependencies>
+<!--
+    <distributionManagement>
+        <snapshotRepository>
+            <id>nexus-snapshots</id>
+            <url>http://admin:admin123@192.168.100.149:8081/nexus/content/repositories/snapshots</url>
+        </snapshotRepository>
+    </distributionManagement>
+-->
+    <distributionManagement>
+        <repository>
+            <id>sepsa-nexus</id>
+            <name>Sepsa Releases</name>
+            <url>http://srvbparg0437.wu:8081/nexus/content/repositories/Releases.WU/</url>
+        </repository>
+        <snapshotRepository>
+            <id>sepsa-snapshots-nexus</id>
+            <name>Sepsa Releases</name>
+            <url>http://srvbparg0437.wu:8081/nexus/content/repositories/Snapshots.WU/</url>
+        </snapshotRepository>
+    </distributionManagement>
 
     <build>
         <defaultGoal>install</defaultGoal>
@@ -185,7 +191,7 @@
             </snapshots>
         </repository>
     </repositories>
-
+<!--
     <distributionManagement>
         <repository>
             <id>sepsa-nexus</id>
@@ -198,7 +204,7 @@
             <url>http://srvbparg0437.wu:8081/nexus/content/repositories/Snapshots.WU/</url>
         </snapshotRepository>
     </distributionManagement>
-
+-->
     <pluginRepositories>
         <pluginRepository>
             <id>release.fusesource.org</id>

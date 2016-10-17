@@ -16,9 +16,11 @@ public class ResponseProcessor implements Processor {
 
     @Override
     public void process(Exchange exchange) throws Exception {
-        ExecResult body = (ExecResult) exchange.getIn().getBody();
-        InputStream is = body.getStdout();
+        String result = (String) exchange.getIn().getBody();
 
+//        ExecResult body = (ExecResult) exchange.getIn().getBody();
+//        InputStream is = body.getStdout();
+/*
         if (is == null) {
             exchange.getIn().setBody(body.getStderr());
 
@@ -30,7 +32,7 @@ public class ResponseProcessor implements Processor {
 
             throw new Exception();
         }
-
-        exchange.getIn().setBody(body.getStdout());
+*/
+        exchange.getIn().setBody(result);
     }
 }

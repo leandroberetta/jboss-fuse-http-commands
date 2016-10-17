@@ -10,6 +10,24 @@
     <modelVersion>4.0.0</modelVersion>
 
     <artifactId>jboss-fuse-http-commands-bundle</artifactId>
+    <packaging>bundle</packaging>
+
+    <properties>
+        <fabric.version>1.2.0.redhat-133</fabric.version>
+
+        <fabric8.profile>${bundle-brand-name}-profile</fabric8.profile>
+        <fabric8.parentProfiles>jboss-fuse-minimal</fabric8.parentProfiles>
+        <fabric8.upload>false</fabric8.upload>
+        <fabric8.features>
+            camel-restlet
+            camel-exec
+            camel-jackson
+            camel-mustache
+        </fabric8.features>
+        <fabric8.bundles>
+            mvn:com.redhat.fuse/jboss-fuse-http-commands-lib/1.0.0-SNAPSHOT
+        </fabric8.bundles>
+    </properties>
 
     <dependencies>
         <dependency>
@@ -53,6 +71,7 @@
             <plugin>
                 <groupId>org.apache.camel</groupId>
                 <artifactId>camel-maven-plugin</artifactId>
+                <version>2.18.0</version>
             </plugin>
         </plugins>
     </build>

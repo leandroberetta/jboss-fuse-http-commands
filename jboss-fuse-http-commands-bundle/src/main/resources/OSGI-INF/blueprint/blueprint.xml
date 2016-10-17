@@ -15,6 +15,7 @@
       <cm:property name="port" value="5555"/>
       <cm:property name="sourcePath" value="/home/lberetta/commands"/>
       <cm:property name="fuse.workingDir" value="/home/lberetta/platform/fuse/bin"/>
+      <cm:property name="basePath" value="monitor"/>
     </cm:default-properties>
   </cm:property-placeholder>
 

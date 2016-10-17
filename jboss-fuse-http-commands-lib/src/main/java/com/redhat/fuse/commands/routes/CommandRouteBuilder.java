@@ -19,7 +19,7 @@ public class CommandRouteBuilder extends RouteBuilder {
             .process(new ErrorProcessor())
             .marshal().json(JsonLibrary.Jackson).id("marshalJsonErrorResponse");
 
-        from("restlet:http://{{host}}:{{port}}/commands/container/{container}/bundle-state/{name}")
+        from("restlet:http://{{host}}:{{port}}/{{basePath}}/commands/container/{container}/bundle-state/{name}")
             .routeId("dispatchBundleStateRoute")
             .to("direct:getPortFromContainerInfo")
             .setHeader("command", simple("list -s |grep ${header.name}"))
@@ -27,9 +27,9 @@ public class CommandRouteBuilder extends RouteBuilder {
             .process(bundleStateProcessor)
             .marshal().json(JsonLibrary.Jackson).id("marshalJsonResponse");
 
-        from("restlet:http://{{host}}:{{port}}/commands/{command}")
+        from("restlet:http://{{host}}:{{port}}/{{basePath}}/commands/{command}")
             .routeId("dispatchCommandRoute")
-            .setHeader("sourcePath", simple("{{sourcePath}}/commands"))
+            .setHeader("sourcePath", simple("{{sourcePath}}"))
             .process(fileCommandProcessor)
             .choice()
                 .when(header("target").isEqualTo("container")).to("direct:getPortFromContainerInfo").to("direct:execute")
@@ -40,12 +40,14 @@ public class CommandRouteBuilder extends RouteBuilder {
             .routeId("getPortFromContainerInfoRoute")
             .setHeader(ExecBinding.EXEC_COMMAND_ARGS, simple("-a 8101 container-info ${header.container}"))
             .to("exec:./client?workingDir={{fuse.workingDir}}").id("execPortCommand")
+            .convertBodyTo(String.class)
             .process(getPortProcessor);
 
         from("direct:execute")
             .routeId("executeCommandRoute")
             .setHeader(ExecBinding.EXEC_COMMAND_ARGS, simple("-a ${header.port} \"${header.command}\""))
             .to("exec:./client?workingDir={{fuse.workingDir}}").id("execCommand")
+            .convertBodyTo(String.class)
             .process(commandResponseProcessor).id("processResponseCommand");
     }
 }

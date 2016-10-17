@@ -15,11 +15,11 @@ public class ErrorProcessor implements Processor {
     public void process(Exchange exchange) throws Exception {
         Throwable caused = exchange.getProperty(Exchange.EXCEPTION_CAUGHT, Throwable.class);
 
-        logger.error(caused.getMessage());
+        logger.error(caused.getLocalizedMessage());
 
         Response response  = new Response();
         response.setStatus(Response.ERROR);
-        response.setData(caused.getMessage());
+        response.setData(caused.getLocalizedMessage());
 
         exchange.getIn().setBody(response);
     }

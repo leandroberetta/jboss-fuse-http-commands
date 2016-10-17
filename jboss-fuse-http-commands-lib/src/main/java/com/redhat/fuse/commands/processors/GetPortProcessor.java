@@ -5,6 +5,7 @@ import org.apache.camel.Processor;
 import org.apache.camel.component.exec.ExecResult;
 
 import java.io.BufferedReader;
+import java.io.ByteArrayInputStream;
 import java.io.InputStreamReader;
 
 public class GetPortProcessor implements Processor {
@@ -13,8 +14,8 @@ public class GetPortProcessor implements Processor {
 
     @Override
     public void process(Exchange exchange) throws Exception {
-        ExecResult body = (ExecResult) exchange.getIn().getBody();
-        BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(body.getStdout()));
+        String result = (String) exchange.getIn().getBody();
+        BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(new ByteArrayInputStream(result.getBytes())));
 
         String line;
         String port = null;
