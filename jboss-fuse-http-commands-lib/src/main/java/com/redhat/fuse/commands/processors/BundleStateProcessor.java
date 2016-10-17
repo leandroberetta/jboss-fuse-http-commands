@@ -20,9 +20,10 @@ public class BundleStateProcessor implements Processor {
         String line;
         BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(new ByteArrayInputStream(result.getBytes())));
 
-        // Workaround for command first line output
+        // Workaround for a possible first line with a warning regarding KARAF_HOME
+        // TODO: Review and try to remove this
         while ((line = bufferedReader.readLine()) != null) {
-            if (!line.contains("Ignoring"))
+            if (!line.contains("KARAF_HOME"))
                 break;
         }
 
@@ -30,7 +31,7 @@ public class BundleStateProcessor implements Processor {
         Matcher m = r.matcher(line);
         Response response = new Response();
 
-        // Skip first match
+        // Skip first match, the second one is needed
         m.find();
         if (m.find()) {
             response.setData(m.group(1));
@@ -39,7 +40,6 @@ public class BundleStateProcessor implements Processor {
         }
 
         response.setStatus(Response.SUCCESS);
-
         exchange.getIn().setBody(response);
     }
 }
