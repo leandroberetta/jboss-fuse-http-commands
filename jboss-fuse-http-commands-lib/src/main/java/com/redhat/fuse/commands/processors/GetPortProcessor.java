@@ -22,7 +22,7 @@ public class GetPortProcessor implements Processor {
         }
 
         if (port == null)
-            throw new InvalidPortException("The container does not exists");
+            throw new InvalidPortException("Invalid port. The container may not exists.");
 
         exchange.getIn().setHeader("port", port);
     }

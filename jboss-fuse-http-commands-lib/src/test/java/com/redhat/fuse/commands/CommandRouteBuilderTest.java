@@ -203,7 +203,7 @@ public class CommandRouteBuilderTest extends CamelTestSupport {
     }
 
     @Test
-    public void testGetBundleStateWithError() throws Exception {
+    public void testGetBundleStateWithMissingBundleStateException() throws Exception {
 
         context.getRouteDefinition("dispatchBundleStateRoute").adviceWith(context, new AdviceWithRouteBuilder() {
             @Override
@@ -240,6 +240,7 @@ public class CommandRouteBuilderTest extends CamelTestSupport {
                     @Override
                     public void process(Exchange exchange) throws Exception {
                         String response = "BAD RESPONSE";
+
                         exchange.getIn().setBody(response);
                     }
                 });
@@ -248,6 +249,67 @@ public class CommandRouteBuilderTest extends CamelTestSupport {
 
         MockEndpoint mockEndpoint = getMockEndpoint("mock:end");
         mockEndpoint.expectedBodiesReceived("{\"status\":-1,\"data\":\"Could not find bundle state in: BAD RESPONSE\"}");
+
+        mockEndpoint.message(0).header("name").isEqualTo("jboss-fuse-http-commands");
+        mockEndpoint.message(0).header("container").isEqualTo("commands");
+
+        HashMap<String, Object> map = new HashMap<String, Object>();
+        map.put("container", "commands");
+        map.put("name", "jboss-fuse-http-commands");
+
+        template.sendBodyAndHeaders("direct:dispatchBundleStateRoute", null, map);
+
+        mockEndpoint.assertIsSatisfied();
+    }
+
+
+    @Test
+    public void testGetBundleStateWithInvalidPortException() throws Exception {
+
+        context.getRouteDefinition("dispatchBundleStateRoute").adviceWith(context, new AdviceWithRouteBuilder() {
+            @Override
+            public void configure() throws Exception {
+                replaceFromWith("direct:dispatchBundleStateRoute");
+
+                weaveById("marshalJsonErrorResponse")
+                    .after()
+                    .to("mock:end");
+            }
+        });
+
+        context.getRouteDefinition("getPortFromContainerInfoRoute").adviceWith(context, new AdviceWithRouteBuilder() {
+            @Override
+            public void configure() throws Exception {
+                weaveById("execPortCommand")
+                    .replace()
+                    .process(new Processor() {
+                        @Override
+                        public void process(Exchange exchange) throws Exception {
+                            String result = new String(Files.readAllBytes(Paths.get("src/test/resources/container_info_bad_response")));
+
+                            exchange.getIn().setHeader(ExecBinding.EXEC_EXIT_VALUE, 0);
+                            exchange.getIn().setBody(result);
+                        }
+                    });
+            }
+        });
+
+        context.getRouteDefinition("executeCommandRoute").adviceWith(context, new AdviceWithRouteBuilder() {
+            @Override
+            public void configure() throws Exception {
+                weaveById("execCommand").replace().process(new Processor() {
+                    @Override
+                    public void process(Exchange exchange) throws Exception {
+                        String response = "[ 211] [Active     ] [Created     ] [       ] [   80] jboss-fuse-http-commands (1.0.0.SNAPSHOT)\n";
+
+                        exchange.getIn().setBody(response);
+                    }
+                });
+            }
+        });
+
+        MockEndpoint mockEndpoint = getMockEndpoint("mock:end");
+        mockEndpoint.expectedBodiesReceived("{\"status\":-1,\"data\":\"Invalid port. The container may not exists.\"}");
 
         mockEndpoint.message(0).header("name").isEqualTo("jboss-fuse-http-commands");
         mockEndpoint.message(0).header("container").isEqualTo("commands");
