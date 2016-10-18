@@ -1,6 +1,9 @@
 package com.redhat.fuse.commands.routes;
 
+import com.redhat.fuse.commands.exceptions.ExecCommandException;
 import com.redhat.fuse.commands.processors.*;
+import org.apache.camel.Exchange;
+import org.apache.camel.Processor;
 import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.component.exec.ExecBinding;
 import org.apache.camel.model.dataformat.JsonLibrary;
@@ -11,7 +14,6 @@ public class CommandRouteBuilder extends RouteBuilder {
     public void configure() throws Exception {
         FileCommandProcessor fileCommandProcessor = new FileCommandProcessor();
         GetPortProcessor getPortProcessor = new GetPortProcessor();
-        ResponseProcessor commandResponseProcessor = new ResponseProcessor();
         BundleStateProcessor bundleStateProcessor = new BundleStateProcessor();
 
         onException()
@@ -24,6 +26,13 @@ public class CommandRouteBuilder extends RouteBuilder {
             .to("direct:getPortFromContainerInfo")
             .setHeader("command", simple("list -s |grep ${header.name}"))
             .to("direct:execute")
+            .process(new Processor() {
+                @Override
+                public void process(Exchange exchange) throws Exception {
+                    if (exchange.getIn().getHeader(ExecBinding.EXEC_EXIT_VALUE, Integer.class) == 1) // ERROR
+                        throw new ExecCommandException("Error executing command.");
+                }
+            })
             .process(bundleStateProcessor)
             .marshal().json(JsonLibrary.Jackson).id("marshalJsonResponse");
 
@@ -40,6 +49,13 @@ public class CommandRouteBuilder extends RouteBuilder {
             .routeId("getPortFromContainerInfoRoute")
             .setHeader(ExecBinding.EXEC_COMMAND_ARGS, simple("-a 8101 container-info ${header.container}"))
             .to("exec:./client?workingDir={{fuse.workingDir}}").id("execPortCommand")
+            .process(new Processor() {
+                @Override
+                public void process(Exchange exchange) throws Exception {
+                    if (exchange.getIn().getHeader(ExecBinding.EXEC_EXIT_VALUE, Integer.class) == 1) // ERROR
+                        throw new ExecCommandException("Error executing command.");
+                }
+            })
             .convertBodyTo(String.class)
             .process(getPortProcessor);
 
@@ -47,7 +63,6 @@ public class CommandRouteBuilder extends RouteBuilder {
             .routeId("executeCommandRoute")
             .setHeader(ExecBinding.EXEC_COMMAND_ARGS, simple("-a ${header.port} \"${header.command}\""))
             .to("exec:./client?workingDir={{fuse.workingDir}}").id("execCommand")
-            .convertBodyTo(String.class)
-            .process(commandResponseProcessor).id("processResponseCommand");
+            .convertBodyTo(String.class).id("processResponseCommand");
     }
 }

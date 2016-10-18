@@ -5,6 +5,7 @@ import org.apache.camel.Exchange;
 import org.apache.camel.Processor;
 import org.apache.camel.builder.AdviceWithRouteBuilder;
 import org.apache.camel.builder.RouteBuilder;
+import org.apache.camel.component.exec.ExecBinding;
 import org.apache.camel.component.exec.ExecResult;
 import org.apache.camel.component.mock.MockEndpoint;
 import org.apache.camel.test.junit4.CamelTestSupport;
@@ -19,9 +20,6 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.Properties;
-
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 
 public class CommandRouteBuilderTest extends CamelTestSupport {
 
@@ -67,6 +65,7 @@ public class CommandRouteBuilderTest extends CamelTestSupport {
                         public void process(Exchange exchange) throws Exception {
                             String result = new String(Files.readAllBytes(Paths.get("src/test/resources/container_info_response")));
 
+                            exchange.getIn().setHeader(ExecBinding.EXEC_EXIT_VALUE, 0);
                             exchange.getIn().setBody(result);
                         }
                     }).to("mock:exec");
@@ -168,6 +167,7 @@ public class CommandRouteBuilderTest extends CamelTestSupport {
                         public void process(Exchange exchange) throws Exception {
                             String result = new String(Files.readAllBytes(Paths.get("src/test/resources/container_info_response")));
 
+                            exchange.getIn().setHeader(ExecBinding.EXEC_EXIT_VALUE, 0);
                             exchange.getIn().setBody(result);
                         }
                     });
@@ -202,8 +202,8 @@ public class CommandRouteBuilderTest extends CamelTestSupport {
         mockEndpoint.assertIsSatisfied();
     }
 
-    @Ignore
-    public void testGetErrorResponse() throws Exception {
+    @Test
+    public void testGetBundleStateWithError() throws Exception {
 
         context.getRouteDefinition("dispatchBundleStateRoute").adviceWith(context, new AdviceWithRouteBuilder() {
             @Override
@@ -219,14 +219,17 @@ public class CommandRouteBuilderTest extends CamelTestSupport {
         context.getRouteDefinition("getPortFromContainerInfoRoute").adviceWith(context, new AdviceWithRouteBuilder() {
             @Override
             public void configure() throws Exception {
-                weaveById("execPortCommand").replace().process(new Processor() {
-                    @Override
-                    public void process(Exchange exchange) throws Exception {
-                        String result = new String(Files.readAllBytes(Paths.get("src/test/resources/container_info_response")));
+                weaveById("execPortCommand")
+                    .replace()
+                    .process(new Processor() {
+                        @Override
+                        public void process(Exchange exchange) throws Exception {
+                            String result = new String(Files.readAllBytes(Paths.get("src/test/resources/container_info_response")));
 
-                        exchange.getIn().setBody(result);
-                    }
-                });
+                            exchange.getIn().setHeader(ExecBinding.EXEC_EXIT_VALUE, 0);
+                            exchange.getIn().setBody(result);
+                        }
+                    });
             }
         });
 
@@ -236,18 +239,22 @@ public class CommandRouteBuilderTest extends CamelTestSupport {
                 weaveById("execCommand").replace().process(new Processor() {
                     @Override
                     public void process(Exchange exchange) throws Exception {
-                        exchange.getIn().setBody("ERROR");
+                        String response = "BAD RESPONSE";
+                        exchange.getIn().setBody(response);
                     }
                 });
             }
         });
 
         MockEndpoint mockEndpoint = getMockEndpoint("mock:end");
-        mockEndpoint.expectedBodiesReceived("{\"status\":-1,\"data\":null}");
+        mockEndpoint.expectedBodiesReceived("{\"status\":-1,\"data\":\"Could not find bundle state in: BAD RESPONSE\"}");
+
+        mockEndpoint.message(0).header("name").isEqualTo("jboss-fuse-http-commands");
+        mockEndpoint.message(0).header("container").isEqualTo("commands");
 
         HashMap<String, Object> map = new HashMap<String, Object>();
         map.put("container", "commands");
-        map.put("name", "fuse-generic-commands");
+        map.put("name", "jboss-fuse-http-commands");
 
         template.sendBodyAndHeaders("direct:dispatchBundleStateRoute", null, map);
 
